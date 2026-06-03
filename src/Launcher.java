@@ -19,7 +19,7 @@ public class Launcher extends GameObject
 
     public void charge()
     {
-
+        
     }
 
     public void launch(Ball ball)

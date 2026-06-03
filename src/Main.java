@@ -10,5 +10,7 @@ public class Main
         // TODO: Create the panel here
         frame.setSize(600, 650);
         frame.setVisible(true);
+
+        frame.requestFocusInWindow();
     }
 }

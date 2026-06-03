@@ -55,6 +55,16 @@ public class Ball extends GameObject
         yspeed*=sp;
     }
 
+    public void incXSpeed(double speed)
+    {
+        xspeed+=speed;
+    }
+
+    public void incYSpeed(double speed)
+    {
+        yspeed+=speed;
+    }
+
 
 
 

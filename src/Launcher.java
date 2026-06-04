@@ -1,36 +1,60 @@
-import java.awt.Graphics;
 import java.awt.Color;
+import java.awt.Graphics;
 
-public class Launcher extends GameObject
-{
+public class Launcher extends GameObject {
     private int charge;
     private int maxCharge;
     private boolean charging;
 
-    public Launcher(int x, int y, int height, int width, Color color)
-    {
-        super(x,y,height,width,color);
+    public Launcher(int x, int y, int width, int height, Color color) {
+        super(x, y, width, height, color);
+
+        charge = 0;
+        maxCharge = 100;
+        charging = false;
     }
 
-    public void startCharging()
-    {
+    public void startCharging() {
         charging = true;
     }
 
-    public void charge()
-    {
-        
+    public void charge() {
+        if (charging && charge < maxCharge) {
+            charge++;
+        }
     }
 
-    public void launch(Ball ball)
-    {
+    public void launch(Ball ball) {
+        double launchPower = 8 + charge * 0.15;
 
+        ball.setYSpeed(-launchPower);
+        ball.setXSpeed(0);
+
+        stopCharging();
+        resetCharge();
     }
 
-    @Override
-    public void draw(Graphics g)
-    {
-        
+    public void stopCharging() {
+        charging = false;
     }
 
+    public void resetCharge() {
+        charge = 0;
+    }
+
+    public void draw(Graphics g) {
+        g.setColor(getColor());
+
+        int compressedAmount = charge / 3;
+
+        g.fillRect(
+            getX(),
+            getY() + compressedAmount,
+            getWidth(),
+            getHeight() - compressedAmount
+        );
+
+        g.setColor(Color.GRAY);
+        g.drawRect(getX(), getY(), getWidth(), getHeight());
+    }
 }

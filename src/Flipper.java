@@ -1,4 +1,5 @@
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Color;
 import java.awt.geom.AffineTransform;
 
@@ -10,18 +11,18 @@ public class Flipper extends GameObject
     private double yPivot;
     private boolean isLeft;
 
-    public Flipper(int x, int y, int height, int width, Color color, boolean isLeft)
+    public Flipper(int x, int y, int width, int height, Color color, boolean isLeft)
     {
-        super(x,y,height,width,color);
+        super(x,y,width,height,color);
         this.isLeft = isLeft;
-        yPivot = y+height/2.0;
+        yPivot = y + height / 2.0;
         if (isLeft)
         {
             xPivot = x;
         }
         else
         {
-            xPivot = x+width;
+            xPivot = x + width;
         }
     }
     
@@ -30,16 +31,16 @@ public class Flipper extends GameObject
         Graphics2D g2d = (Graphics2D) g;
         AffineTransform old = g2d.getTransform();
         double change = Math.toRadians(angleChange);
-        if (isLeft&&up || !isLeft&&!up)
+        if ((isLeft && up) || (!isLeft && !up))
         {
-            g2d.rotate(change,pivotX,pivotY);
+            g2d.rotate(change, xPivot, yPivot);
         }
         else
         {
-            double changeDif = change*-1;
-            g2d.rotate(changeDif,pivotX,pivotY);
+            double changeDif = -change;
+            g2d.rotate(changeDif, xPivot, yPivot);
         }
-        g2d.fillRect(getX(),getY(),getWidth(),getHeight());
+        g2d.fillRect(getX(), getY(), getWidth(), getHeight());
         g2d.setTransform(old);
     }
 
@@ -47,7 +48,7 @@ public class Flipper extends GameObject
     public void draw(Graphics g)
     {
         g.setColor(getColor());
-        g.fillRect(x,y,width,height);
+        g.fillRect(getX(), getY(), getWidth(), getHeight());
     }
 
     public int getAngle()

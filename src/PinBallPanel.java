@@ -1,5 +1,6 @@
 import java.awt.*;
 import java.awt.event.*;
+import java.util.ArrayList;
 import javax.swing.*;
 
 
@@ -18,13 +19,13 @@ public class PinBallPanel extends JPanel implements ActionListener
         setPreferredSize(new Dimension(600,400));
         setBackground(Color.DARK_GRAY);
 
-        ball = new Ball(600,400,20,COLOR.CYAN);
-        leftFlipper = new Flipper(30,150,15,80,Color.WHITE);
-        rightFlipper = new Flipper(300,150,15,80,Color.WHITE);
+        ball = new Ball(600,400,20,Color.CYAN);
+        leftFlipper = new Flipper(30,150,15,80,Color.WHITE, true);
+        rightFlipper = new Flipper(300,150,15,80,Color.WHITE, false);
         launch = new Launcher(600,400,20,100,Color.RED);
 
         // add Bumper declaration with for loop(?) later
-        setFocusable(true)
+        setFocusable(true);
 
         this.addKeyListener(new MyKeyHandler());
 
@@ -71,4 +72,45 @@ public class PinBallPanel extends JPanel implements ActionListener
     {
         
     }
-}
+
+    private class MyKeyHandler implements KeyListener
+    {
+        @Override
+        public void keyTyped(KeyEvent e) {}
+
+        @Override
+        public void keyPressed(KeyEvent e)
+        {
+            int code = e.getKeyCode();
+            if (code == KeyEvent.VK_LEFT)
+            {
+                leftPressed = true;
+            }
+            else if (code == KeyEvent.VK_RIGHT)
+            {
+                rightPressed = true;
+            }
+            else if (code == KeyEvent.VK_SPACE)
+            {
+                spacePressed = true;
+            }
+        }
+
+        @Override
+        public void keyReleased(KeyEvent e)
+        {
+            int code = e.getKeyCode();
+            if (code == KeyEvent.VK_LEFT)
+            {
+                leftPressed = false;
+            }
+            else if (code == KeyEvent.VK_RIGHT)
+            {
+                rightPressed = false;
+            }
+            else if (code == KeyEvent.VK_SPACE)
+            {
+                spacePressed = false;
+            }
+        }
+    }}

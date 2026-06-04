@@ -3,8 +3,8 @@ import java.awt.Graphics;
 
 public class Ball extends GameObject
 {
-    private int xSpeed = 10;
-    private int ySpeed = 10;
+    private double xSpeed = 10;
+    private double ySpeed = 10;
     public Ball(int x, int y, int diameter, Color color)
     {
         super(x,y,diameter,diameter,color);
@@ -17,52 +17,52 @@ public class Ball extends GameObject
 
     public double getXSpeed()
     {
-        return xspeed;
+        return xSpeed;
     }
     
     public double getYSpeed()
     {
-        return yspeed;
+        return ySpeed;
     }
 
     public void reverseX()
     {
-        xspeed*=-1;
+        xSpeed *= -1;
     }
 
     public void reverseY()
     {
-        yspeed*=-1;
+        ySpeed *= -1;
     }
 
     public void setXSpeed(double speed)
     {
-        xspeed = speed;
+        xSpeed = speed;
     }
 
     public void setYSpeed(double speed)
     {
-        yspeed = speed;
+        ySpeed = speed;
     }
 
     public void multXSpeed(double sp)
     {
-        xspeed*=sp;
+        xSpeed *= sp;
     }
 
     public void multYSpeed(double sp)
     {
-        yspeed*=sp;
+        ySpeed *= sp;
     }
 
     public void incXSpeed(double speed)
     {
-        xspeed+=speed;
+        xSpeed += speed;
     }
 
     public void incYSpeed(double speed)
     {
-        yspeed+=speed;
+        ySpeed += speed;
     }
 
 
@@ -74,7 +74,8 @@ public class Ball extends GameObject
     @Override
     public void draw(Graphics g)
     {
-        g.setColor(getColor())
+        g.setColor(getColor());
+        g.fillOval(getX(), getY(), getWidth(), getHeight());
     }
 
 

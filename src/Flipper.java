@@ -1,58 +1,114 @@
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Color;
+import java.awt.*;
 import java.awt.geom.AffineTransform;
 
-public class Flipper extends GameObject
-{
-    private int angle;
-    private int angleChange;
-    private double xPivot;
-    private double yPivot;
-    private boolean isLeft;
+public class Flipper {
 
-    public Flipper(int x, int y, int width, int height, Color color, boolean isLeft)
-    {
-        super(x,y,width,height,color);
-        this.isLeft = isLeft;
-        yPivot = y + height / 2.0;
-        if (isLeft)
-        {
-            xPivot = x;
-        }
-        else
-        {
-            xPivot = x + width;
-        }
-    }
-    
-    public void move(Graphics g, boolean up)
-    {
-        Graphics2D g2d = (Graphics2D) g;
-        AffineTransform old = g2d.getTransform();
-        double change = Math.toRadians(angleChange);
-        if ((isLeft && up) || (!isLeft && !up))
-        {
-            g2d.rotate(change, xPivot, yPivot);
-        }
-        else
-        {
-            double changeDif = -change;
-            g2d.rotate(changeDif, xPivot, yPivot);
-        }
-        g2d.fillRect(getX(), getY(), getWidth(), getHeight());
-        g2d.setTransform(old);
+    private int pivotX;
+    private int pivotY;
+
+    private int length;
+    private int thickness;
+
+    private double angle;
+
+    private double restingAngle;
+    private double maxAngle;
+
+    private double flipSpeed;
+    private double returnSpeed;
+
+    private boolean flipping;
+
+    private Color color;
+
+    public Flipper(int x, int y) {
+
+        pivotX = x;
+        pivotY = y;
+
+        length = 100;
+        thickness = 18;
+
+        restingAngle = 25;
+        maxAngle = -45;
+
+        angle = restingAngle;
+
+        flipSpeed = 20;
+        returnSpeed = 8;
+
+        color = Color.RED;
     }
 
-    @Override
-    public void draw(Graphics g)
-    {
-        g.setColor(getColor());
-        g.fillRect(getX(), getY(), getWidth(), getHeight());
+    public void update() {
+
+        if (flipping) {
+
+            angle -= flipSpeed;
+
+            if (angle < maxAngle) {
+                angle = maxAngle;
+            }
+
+        } else {
+
+            angle += returnSpeed;
+
+            if (angle > restingAngle) {
+                angle = restingAngle;
+            }
+        }
     }
 
-    public int getAngle()
-    {
+    public void draw(Graphics g) {
+
+        Graphics2D g2 = (Graphics2D) g;
+
+        AffineTransform old = g2.getTransform();
+
+        g2.translate(pivotX, pivotY);
+
+        g2.rotate(Math.toRadians(angle));
+
+        g2.setColor(color);
+
+        g2.fillRoundRect(
+                0,
+                -thickness / 2,
+                length,
+                thickness,
+                thickness,
+                thickness
+        );
+
+        g2.setColor(Color.WHITE);
+
+        g2.fillOval(-8, -8, 16, 16);
+
+        g2.setTransform(old);
+    }
+
+    public void setFlipping(boolean f) {
+        flipping = f;
+    }
+
+    public boolean isFlipping() {
+        return flipping;
+    }
+
+    public double getAngle() {
         return angle;
+    }
+
+    public void setFlipSpeed(double speed) {
+        flipSpeed = speed;
+    }
+
+    public void setReturnSpeed(double speed) {
+        returnSpeed = speed;
+    }
+
+    public void setColor(Color c) {
+        color = c;
     }
 }

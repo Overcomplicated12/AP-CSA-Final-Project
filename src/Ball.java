@@ -12,7 +12,19 @@ public class Ball extends GameObject
 
     public void move(int screenwidth, int screenheight)
     {
+        ySpeed += 0.25;
 
+        setX((int)(getX() + xSpeed));
+        setY((int)(getY() + ySpeed));
+        if (getX() <= 0 || getX() + getWidth() >= screenwidth)
+        {
+            reverseX();
+        }
+
+        if (getY() <= 0 || getY() + getHeight() >= screenheight)
+        {
+            reverseY();
+        }
     }
 
     public double getXSpeed()

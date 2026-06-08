@@ -55,12 +55,27 @@ public class PinBallPanel extends JPanel implements ActionListener
 
     private void checkFlipCollisions()
     {
-
+        
     }
 
     private void checkWallCollisions()
     {
+        if (ball.getX() <= 0 || ball.getX() + ball.getWidth() >= getWidth()) {
+            ball.reverseX();
+        }
 
+        if (ball.getY() <= 0) {
+            ball.reverseY();
+        }
+
+        if (ball.getY() > getHeight()) {
+            ball.setX(535);
+            ball.setY(120);
+            ball.setXSpeed(0);
+            ball.setYSpeed(0);
+
+            score = Math.max(0, score - 50);
+        }
     }
 
     private void updateScore(int points)

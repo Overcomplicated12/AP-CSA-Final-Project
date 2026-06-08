@@ -50,7 +50,7 @@ public class Flipper {
 
     // Backwards-compatible constructor (assume left-side)
     public Flipper(int x, int y) {
-        this(x, y, true);
+        this(x, y, Color.RED, true);
     }
 
     public void update() {

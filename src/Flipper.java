@@ -21,11 +21,12 @@ public class Flipper {
 
     private Color color;
 
-    public Flipper(int x, int y, boolean left) {
+    public Flipper(int x, int y, Color c, boolean left) {
         pivotX = x;
         pivotY = y;
 
         leftSide = left;
+        color = c;
 
         length = 100;
         thickness = 18;

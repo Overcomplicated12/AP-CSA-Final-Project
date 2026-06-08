@@ -20,8 +20,8 @@ public class PinBallPanel extends JPanel implements ActionListener
         setBackground(Color.DARK_GRAY);
 
         ball = new Ball(600,400,20,Color.CYAN);
-        leftFlipper = new Flipper(30,150,15,80,Color.WHITE, true);
-        rightFlipper = new Flipper(300,150,15,80,Color.WHITE, false);
+        leftFlipper = new Flipper(30,150,Color.WHITE, false);
+        rightFlipper = new Flipper(300,150,Color.WHITE, true);
         launch = new Launcher(600,400,20,100,Color.RED);
 
         // add Bumper declaration with for loop(?) later
@@ -35,22 +35,68 @@ public class PinBallPanel extends JPanel implements ActionListener
 
     public void actionPerformed(ActionEvent e)
     {
-
+        updateGame();
+        checkBumpCollisions();
+        checkFlipCollisions();
+        checkWallCollisions();
+        repaint();
     }
 
     public void paintComponent(Graphics g)
     {
-
+        super.paintComponent(g);
+        ball.draw(g);
+        leftFlipper.draw(g);
+        rightFlipper.draw(g);
+        launch.draw(g);
     }
+
 
     private void updateGame()
     {
+        
+        if (spacePressed && ball.getXSpeed() == 0 && ball.getYSpeed() == 0)
+        {
+            launch.startCharging();
+            launch.charge();
+            launch.launch(ball);
+        }
+        else
+        {
+            launch.stopCharging();
+            launch.resetCharge();
+        }
 
+        if (leftPressed)
+        {
+            leftFlipper.setFlipping(true);
+        }
+        else
+        {
+            leftFlipper.setFlipping(false);
+        }
+
+        if (rightPressed)
+        {
+            rightFlipper.setFlipping(true);
+        }
+        else
+        {
+            rightFlipper.setFlipping(false);
+        }
+
+        ball.move(600,400); 
     }
 
     private void checkBumpCollisions()
     {
-
+            for (Bumper bumper : bumpers) {
+                if (ball.getBounds().intersects(bumper.getBounds())) {
+                    // Simple collision response: reverse the ball's Y direction
+                    ball.reverseY();
+                    updateScore(10); // Award points for hitting a bumper
+                }
+            }
     }
 
     private void checkFlipCollisions()

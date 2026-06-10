@@ -1,11 +1,8 @@
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 
-public class Flipper {
-
-    private int pivotX;
-    private int pivotY;
-
+public class Flipper extends GameObject
+{
     private int length;
     private int thickness;
 
@@ -19,97 +16,101 @@ public class Flipper {
     private boolean flipping;
     private boolean leftSide;
 
-    private Color color;
-
-    public Flipper(int x, int y, Color c, boolean left) {
-        pivotX = x;
-        pivotY = y;
-
-        leftSide = left;
-        color = c;
+    public Flipper(int x, int y, Color c, boolean left)
+    {
+        super(x, y, 100, 18, c);
 
         length = 100;
         thickness = 18;
 
+        leftSide = left;
+
         flipSpeed = 12;
         returnSpeed = 8;
 
-        if (leftSide) {
-            restingAngle = 155;
-            maxAngle = 225;
-        } else {
-            restingAngle = 25;
-            maxAngle = -45;
+        if (leftSide)
+        {
+            restingAngle = -25;
+            maxAngle = -70;
+        }
+        else
+        {
+            restingAngle = 205;
+            maxAngle = 250;
         }
 
         angle = restingAngle;
-
         flipping = false;
-        color = Color.RED;
     }
 
-    // Backwards-compatible constructor (assume left-side)
-    public Flipper(int x, int y) {
+    public Flipper(int x, int y)
+    {
         this(x, y, Color.RED, true);
     }
 
-    public void update() {
-        if (leftSide) {
-            updateLeftFlipper();
-        } else {
-            updateRightFlipper();
+    public void update()
+    {
+        if (leftSide)
+        {
+            if (flipping)
+            {
+                angle -= flipSpeed;
+
+                if (angle < maxAngle)
+                {
+                    angle = maxAngle;
+                }
+            }
+            else
+            {
+                angle += returnSpeed;
+
+                if (angle > restingAngle)
+                {
+                    angle = restingAngle;
+                }
+            }
+        }
+        else
+        {
+            if (flipping)
+            {
+                angle += flipSpeed;
+
+                if (angle > maxAngle)
+                {
+                    angle = maxAngle;
+                }
+            }
+            else
+            {
+                angle -= returnSpeed;
+
+                if (angle < restingAngle)
+                {
+                    angle = restingAngle;
+                }
+            }
         }
     }
 
-    private void updateLeftFlipper() {
-        if (flipping) {
-            angle += flipSpeed;
-
-            if (angle > maxAngle) {
-                angle = maxAngle;
-            }
-        } else {
-            angle -= returnSpeed;
-
-            if (angle < restingAngle) {
-                angle = restingAngle;
-            }
-        }
-    }
-
-    private void updateRightFlipper() {
-        if (flipping) {
-            angle -= flipSpeed;
-
-            if (angle < maxAngle) {
-                angle = maxAngle;
-            }
-        } else {
-            angle += returnSpeed;
-
-            if (angle > restingAngle) {
-                angle = restingAngle;
-            }
-        }
-    }
-
-    public void draw(Graphics g) {
+    public void draw(Graphics g)
+    {
         Graphics2D g2 = (Graphics2D) g;
 
         AffineTransform old = g2.getTransform();
 
-        g2.translate(pivotX, pivotY);
+        g2.translate(getX(), getY());
         g2.rotate(Math.toRadians(angle));
 
-        g2.setColor(color);
-
+        g2.setColor(getColor());
         g2.fillRoundRect(
-                0,
-                -thickness / 2,
-                length,
-                thickness,
-                thickness,
-                thickness
+            0,
+            -thickness / 2,
+            length,
+            thickness,
+            thickness,
+            thickness
         );
 
         g2.setColor(Color.WHITE);
@@ -118,31 +119,33 @@ public class Flipper {
         g2.setTransform(old);
     }
 
-    public void setFlipping(boolean f) {
+    public void setFlipping(boolean f)
+    {
         flipping = f;
     }
 
-    public boolean isFlipping() {
+    public boolean isFlipping()
+    {
         return flipping;
     }
 
-    public double getAngle() {
+    public double getAngle()
+    {
         return angle;
     }
 
-    public boolean isLeftSide() {
+    public boolean isLeftSide()
+    {
         return leftSide;
     }
 
-    public void setFlipSpeed(double speed) {
-        flipSpeed = speed;
+    public int getLength()
+    {
+        return length;
     }
 
-    public void setReturnSpeed(double speed) {
-        returnSpeed = speed;
-    }
-
-    public void setColor(Color c) {
-        color = c;
+    public int getThickness()
+    {
+        return thickness;
     }
 }

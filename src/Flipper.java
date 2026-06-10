@@ -1,5 +1,5 @@
 import java.awt.*;
-import java.awt.geom.AffineTransform;
+import java.awt.geom.*;
 
 public class Flipper extends GameObject
 {
@@ -22,7 +22,6 @@ public class Flipper extends GameObject
 
         length = 100;
         thickness = 18;
-
         leftSide = left;
 
         flipSpeed = 12;
@@ -53,44 +52,28 @@ public class Flipper extends GameObject
         if (leftSide)
         {
             if (flipping)
-            {
                 angle -= flipSpeed;
-
-                if (angle < maxAngle)
-                {
-                    angle = maxAngle;
-                }
-            }
             else
-            {
                 angle += returnSpeed;
 
-                if (angle > restingAngle)
-                {
-                    angle = restingAngle;
-                }
-            }
+            if (angle < maxAngle)
+                angle = maxAngle;
+
+            if (angle > restingAngle)
+                angle = restingAngle;
         }
         else
         {
             if (flipping)
-            {
                 angle += flipSpeed;
-
-                if (angle > maxAngle)
-                {
-                    angle = maxAngle;
-                }
-            }
             else
-            {
                 angle -= returnSpeed;
 
-                if (angle < restingAngle)
-                {
-                    angle = restingAngle;
-                }
-            }
+            if (angle > maxAngle)
+                angle = maxAngle;
+
+            if (angle < restingAngle)
+                angle = restingAngle;
         }
     }
 
@@ -98,25 +81,42 @@ public class Flipper extends GameObject
     {
         Graphics2D g2 = (Graphics2D) g;
 
-        AffineTransform old = g2.getTransform();
-
-        g2.translate(getX(), getY());
-        g2.rotate(Math.toRadians(angle));
-
         g2.setColor(getColor());
-        g2.fillRoundRect(
+        g2.fill(getShape());
+
+        g2.setColor(Color.WHITE);
+        g2.fillOval(getX() - 8, getY() - 8, 16, 16);
+    }
+
+    public Shape getShape()
+    {
+        RoundRectangle2D rect = new RoundRectangle2D.Double(
             0,
-            -thickness / 2,
+            -thickness / 2.0,
             length,
             thickness,
             thickness,
             thickness
         );
 
-        g2.setColor(Color.WHITE);
-        g2.fillOval(-8, -8, 16, 16);
+        AffineTransform transform = new AffineTransform();
+        transform.translate(getX(), getY());
+        transform.rotate(Math.toRadians(angle));
 
-        g2.setTransform(old);
+        return transform.createTransformedShape(rect);
+    }
+
+    @Override
+    public Rectangle getBounds()
+    {
+        return getShape().getBounds();
+    }
+
+    public void drawBounds(Graphics g)
+    {
+        Graphics2D g2 = (Graphics2D) g;
+        g2.setColor(Color.GREEN);
+        g2.draw(getShape());
     }
 
     public void setFlipping(boolean f)

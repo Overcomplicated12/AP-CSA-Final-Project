@@ -18,15 +18,15 @@ public class PinBallPanel extends JPanel implements ActionListener, KeyListener
     private Flipper leftFlipper;
     private Flipper rightFlipper;
 
-    private final int WIDTH = 600;
-    private final int HEIGHT = 400;
+    private final int WIDTH = 300;
+    private final int HEIGHT = 700;
 
     public PinBallPanel()
     {
         setPreferredSize(new Dimension(WIDTH, HEIGHT));
         setBackground(Color.DARK_GRAY);
 
-        launch = new Launcher(550, 250, 25, 100, Color.RED);
+        launch = new Launcher(WIDTH - 50, HEIGHT - 180, 25, 100, Color.RED);
 
         ball = new Ball(launch.getX() + 3,
                         launch.getY() - 20,
@@ -36,8 +36,8 @@ public class PinBallPanel extends JPanel implements ActionListener, KeyListener
         ball.setXSpeed(0);
         ball.setYSpeed(0);
 
-        leftFlipper = new Flipper(150, 320, Color.WHITE, true);
-        rightFlipper = new Flipper(350, 320, Color.WHITE, false);
+        leftFlipper = new Flipper(0, HEIGHT-50, Color.WHITE, true);
+        rightFlipper = new Flipper(250, HEIGHT-50, Color.WHITE, false);
 
         bumpers = new ArrayList<Bumper>();
         createObjects();
@@ -92,6 +92,8 @@ public class PinBallPanel extends JPanel implements ActionListener, KeyListener
         g.drawString("LEFT / RIGHT = flippers", 20, 40);
         g.drawString("Hold SPACE, release to launch", 20, 60);
         g.drawString("Launcher charge: " + launch.getCharge(), 20, 80);
+        leftFlipper.drawBounds(g);
+rightFlipper.drawBounds(g);
     }
 
     private void drawBackground(Graphics g)
@@ -99,7 +101,7 @@ public class PinBallPanel extends JPanel implements ActionListener, KeyListener
         g.setColor(Color.GRAY);
         g.drawRect(0, 0, WIDTH - 1, HEIGHT - 1);
 
-        g.drawLine(525, 0, 525, HEIGHT);
+        g.drawLine(WIDTH - 75, 0, WIDTH - 75, HEIGHT);
     }
 
     private void updateGame()
@@ -208,9 +210,9 @@ public class PinBallPanel extends JPanel implements ActionListener, KeyListener
 
     private void createObjects()
     {
-        bumpers.add(new Bumper(180, 90, 45, 45, Color.YELLOW));
-        bumpers.add(new Bumper(300, 100, 45, 45, Color.GREEN));
-        bumpers.add(new Bumper(240, 180, 45, 45, Color.ORANGE));
+        bumpers.add(new Bumper(130, 140, 45, 45, Color.YELLOW));
+        bumpers.add(new Bumper(240, 160, 45, 45, Color.GREEN));
+        bumpers.add(new Bumper(185, 260, 45, 45, Color.ORANGE));
     }
 
     public void keyPressed(KeyEvent e)

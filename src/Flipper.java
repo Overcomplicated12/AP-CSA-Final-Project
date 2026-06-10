@@ -30,13 +30,13 @@ public class Flipper extends GameObject
 
         if (leftSide)
         {
-            restingAngle = -25;
-            maxAngle = -70;
+            restingAngle = 25;
+            maxAngle = -30;
         }
         else
         {
-            restingAngle = 205;
-            maxAngle = 250;
+            restingAngle = 155;
+            maxAngle = 210;
         }
 
         angle = restingAngle;

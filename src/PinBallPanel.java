@@ -3,175 +3,253 @@ import java.awt.event.*;
 import java.util.ArrayList;
 import javax.swing.*;
 
-
-public class PinBallPanel extends JPanel implements ActionListener
+public class PinBallPanel extends JPanel implements ActionListener, KeyListener
 {
     private Ball ball;
     private int score;
     private Launcher launch;
     private Timer timer;
-    private boolean leftPressed, rightPressed, spacePressed;
+
+    private boolean ballInLauncher = true;
+    private boolean spacePressed;
+    private boolean wasSpacePressed;
+
     private ArrayList<Bumper> bumpers;
-    private Flipper leftFlipper, rightFlipper;
-    
+    private Flipper leftFlipper;
+    private Flipper rightFlipper;
+
+    private final int WIDTH = 600;
+    private final int HEIGHT = 400;
+
     public PinBallPanel()
     {
-        setPreferredSize(new Dimension(600,400));
+        setPreferredSize(new Dimension(WIDTH, HEIGHT));
         setBackground(Color.DARK_GRAY);
 
-        ball = new Ball(600,400,20,Color.CYAN);
-        leftFlipper = new Flipper(30,150,Color.WHITE, false);
-        rightFlipper = new Flipper(300,150,Color.WHITE, true);
-        launch = new Launcher(600,400,20,100,Color.RED);
+        launch = new Launcher(550, 250, 25, 100, Color.RED);
 
-        // add Bumper declaration with for loop(?) later
+        ball = new Ball(launch.getX() + 3,
+                        launch.getY() - 20,
+                        20,
+                        Color.CYAN);
+
+        ball.setXSpeed(0);
+        ball.setYSpeed(0);
+
+        leftFlipper = new Flipper(150, 320, Color.WHITE, true);
+        rightFlipper = new Flipper(350, 320, Color.WHITE, false);
+
+        bumpers = new ArrayList<Bumper>();
+        createObjects();
+
+        score = 0;
+
         setFocusable(true);
+        addKeyListener(this);
 
-        this.addKeyListener(new MyKeyHandler());
-
-        timer = new Timer(33,this);
+        timer = new Timer(16, this);
         timer.start();
+    }
+
+    public void addNotify()
+    {
+        super.addNotify();
+        requestFocusInWindow();
     }
 
     public void actionPerformed(ActionEvent e)
     {
         updateGame();
-        checkBumpCollisions();
-        checkFlipCollisions();
-        checkWallCollisions();
+
+        if (!ballInLauncher)
+        {
+            checkBumpCollisions();
+            checkFlipCollisions();
+            checkWallCollisions();
+        }
+
         repaint();
     }
 
     public void paintComponent(Graphics g)
     {
         super.paintComponent(g);
+
+        drawBackground(g);
+
+        for (Bumper bumper : bumpers)
+        {
+            bumper.draw(g);
+        }
+
+        launch.draw(g);
         ball.draw(g);
         leftFlipper.draw(g);
         rightFlipper.draw(g);
-        launch.draw(g);
+
+        g.setColor(Color.WHITE);
+        g.drawString("Score: " + score, 20, 20);
+        g.drawString("LEFT / RIGHT = flippers", 20, 40);
+        g.drawString("Hold SPACE, release to launch", 20, 60);
+        g.drawString("Launcher charge: " + launch.getCharge(), 20, 80);
     }
 
+    private void drawBackground(Graphics g)
+    {
+        g.setColor(Color.GRAY);
+        g.drawRect(0, 0, WIDTH - 1, HEIGHT - 1);
+
+        g.drawLine(525, 0, 525, HEIGHT);
+    }
 
     private void updateGame()
     {
-        
-        if (spacePressed && ball.getXSpeed() == 0 && ball.getYSpeed() == 0)
+        leftFlipper.update();
+        rightFlipper.update();
+
+        if (ballInLauncher)
         {
-            launch.startCharging();
-            launch.charge();
-            launch.launch(ball);
-        }
-        else
-        {
-            launch.stopCharging();
-            launch.resetCharge();
+            keepBallAtLauncherTop();
+
+            if (spacePressed)
+            {
+                launch.startCharging();
+                launch.charge();
+            }
+
+            if (wasSpacePressed && !spacePressed)
+            {
+                ballInLauncher = false;
+                launch.launch(ball);
+                launch.stopCharging();
+                launch.resetCharge();
+            }
+
+            wasSpacePressed = spacePressed;
+            return;
         }
 
-        if (leftPressed)
-        {
-            leftFlipper.setFlipping(true);
-        }
-        else
-        {
-            leftFlipper.setFlipping(false);
-        }
+        ball.move(WIDTH, HEIGHT);
+    }
 
-        if (rightPressed)
-        {
-            rightFlipper.setFlipping(true);
-        }
-        else
-        {
-            rightFlipper.setFlipping(false);
-        }
-
-        ball.move(600,400); 
+    private void keepBallAtLauncherTop()
+    {
+        ball.setX(launch.getX() + 3);
+        ball.setY(launch.getY() - ball.getHeight());
+        ball.setXSpeed(0);
+        ball.setYSpeed(0);
     }
 
     private void checkBumpCollisions()
     {
-            for (Bumper bumper : bumpers) {
-                if (ball.getBounds().intersects(bumper.getBounds())) {
-                    // Simple collision response: reverse the ball's Y direction
-                    ball.reverseY();
-                    updateScore(10); // Award points for hitting a bumper
-                }
+        for (Bumper bumper : bumpers)
+        {
+            if (ball.getBounds().intersects(bumper.getBounds()))
+            {
+                ball.reverseY();
+                ball.multXSpeed(-1);
+                updateScore(10);
             }
+        }
     }
 
     private void checkFlipCollisions()
     {
-        
+        if (ball.getBounds().intersects(leftFlipper.getBounds()))
+        {
+            ball.setYSpeed(-10);
+            ball.setXSpeed(-4);
+
+            if (leftFlipper.isFlipping())
+            {
+                ball.setYSpeed(-14);
+                ball.setXSpeed(-6);
+            }
+        }
+
+        if (ball.getBounds().intersects(rightFlipper.getBounds()))
+        {
+            ball.setYSpeed(-10);
+            ball.setXSpeed(4);
+
+            if (rightFlipper.isFlipping())
+            {
+                ball.setYSpeed(-14);
+                ball.setXSpeed(6);
+            }
+        }
     }
 
     private void checkWallCollisions()
     {
-        if (ball.getX() <= 0 || ball.getX() + ball.getWidth() >= getWidth()) {
-            ball.reverseX();
-        }
-
-        if (ball.getY() <= 0) {
-            ball.reverseY();
-        }
-
-        if (ball.getY() > getHeight()) {
-            ball.setX(535);
-            ball.setY(120);
-            ball.setXSpeed(0);
-            ball.setYSpeed(0);
-
+        if (ball.getY() > HEIGHT)
+        {
+            resetBall();
             score = Math.max(0, score - 50);
         }
     }
 
+    private void resetBall()
+    {
+        ballInLauncher = true;
+        spacePressed = false;
+        wasSpacePressed = false;
+
+        keepBallAtLauncherTop();
+
+        launch.stopCharging();
+        launch.resetCharge();
+    }
+
     private void updateScore(int points)
     {
-        score+=points;
+        score += points;
     }
 
     private void createObjects()
     {
-        
+        bumpers.add(new Bumper(180, 90, 45, 45, Color.YELLOW));
+        bumpers.add(new Bumper(300, 100, 45, 45, Color.GREEN));
+        bumpers.add(new Bumper(240, 180, 45, 45, Color.ORANGE));
     }
 
-    private class MyKeyHandler implements KeyListener
+    public void keyPressed(KeyEvent e)
     {
-        @Override
-        public void keyTyped(KeyEvent e) {}
+        int code = e.getKeyCode();
 
-        @Override
-        public void keyPressed(KeyEvent e)
+        if (code == KeyEvent.VK_LEFT)
         {
-            int code = e.getKeyCode();
-            if (code == KeyEvent.VK_LEFT)
-            {
-                leftPressed = true;
-            }
-            else if (code == KeyEvent.VK_RIGHT)
-            {
-                rightPressed = true;
-            }
-            else if (code == KeyEvent.VK_SPACE)
-            {
-                spacePressed = true;
-            }
+            leftFlipper.setFlipping(true);
         }
+        else if (code == KeyEvent.VK_RIGHT)
+        {
+            rightFlipper.setFlipping(true);
+        }
+        else if (code == KeyEvent.VK_SPACE)
+        {
+            spacePressed = true;
+        }
+    }
 
-        @Override
-        public void keyReleased(KeyEvent e)
+    public void keyReleased(KeyEvent e)
+    {
+        int code = e.getKeyCode();
+
+        if (code == KeyEvent.VK_LEFT)
         {
-            int code = e.getKeyCode();
-            if (code == KeyEvent.VK_LEFT)
-            {
-                leftPressed = false;
-            }
-            else if (code == KeyEvent.VK_RIGHT)
-            {
-                rightPressed = false;
-            }
-            else if (code == KeyEvent.VK_SPACE)
-            {
-                spacePressed = false;
-            }
+            leftFlipper.setFlipping(false);
         }
-    }}
+        else if (code == KeyEvent.VK_RIGHT)
+        {
+            rightFlipper.setFlipping(false);
+        }
+        else if (code == KeyEvent.VK_SPACE)
+        {
+            spacePressed = false;
+        }
+    }
+
+    public void keyTyped(KeyEvent e)
+    {
+    }
+}

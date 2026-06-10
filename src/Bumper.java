@@ -7,4 +7,13 @@ public class Bumper extends GameObject
     {
         super(x,y,width,height,color);
     }
+
+    public void draw(Graphics g)
+    {
+        g.setColor(getColor());
+        g.fillOval(getX(), getY(), getWidth(), getHeight());
+
+        g.setColor(Color.WHITE);
+        g.drawOval(getX(), getY(), getWidth(), getHeight());
+    }
 }

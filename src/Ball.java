@@ -3,26 +3,35 @@ import java.awt.Graphics;
 
 public class Ball extends GameObject
 {
-    private double xSpeed = 10;
-    private double ySpeed = 10;
+    private double xSpeed = 0;
+    private double ySpeed = 0;
+
     public Ball(int x, int y, int diameter, Color color)
     {
-        super(x,y,diameter,diameter,color);
+        super(x, y, diameter, diameter, color);
     }
 
-    public void move(int screenwidth, int screenheight)
+    public void move(int screenWidth, int screenHeight)
     {
         ySpeed += 0.25;
 
         setX((int)(getX() + xSpeed));
         setY((int)(getY() + ySpeed));
-        if (getX() <= 0 || getX() + getWidth() >= screenwidth)
+
+        if (getX() <= 0)
         {
+            setX(0);
+            reverseX();
+        }
+        else if (getX() + getWidth() >= screenWidth)
+        {
+            setX(screenWidth - getWidth());
             reverseX();
         }
 
-        if (getY() <= 0 || getY() + getHeight() >= screenheight)
+        if (getY() <= 0)
         {
+            setY(0);
             reverseY();
         }
     }
@@ -31,7 +40,7 @@ public class Ball extends GameObject
     {
         return xSpeed;
     }
-    
+
     public double getYSpeed()
     {
         return ySpeed;
@@ -77,19 +86,9 @@ public class Ball extends GameObject
         ySpeed += speed;
     }
 
-
-
-
-
-
-
-    @Override
     public void draw(Graphics g)
     {
         g.setColor(getColor());
         g.fillOval(getX(), getY(), getWidth(), getHeight());
     }
-
-
-
 }

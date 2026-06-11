@@ -28,16 +28,18 @@ public class PinBallPanel extends JPanel implements ActionListener, KeyListener
 
         launch = new Launcher(WIDTH - 50, HEIGHT - 180, 25, 100, Color.RED);
 
-        ball = new Ball(launch.getX() + 3,
-                        launch.getY() - 20,
-                        20,
-                        Color.CYAN);
+        ball = new Ball(
+            launch.getX() + 3,
+            launch.getY() - 20,
+            20,
+            Color.CYAN
+        );
 
         ball.setXSpeed(0);
         ball.setYSpeed(0);
 
-        leftFlipper = new Flipper(0, HEIGHT-50, Color.WHITE, true);
-        rightFlipper = new Flipper(250, HEIGHT-50, Color.WHITE, false);
+        leftFlipper = new Flipper(0, HEIGHT - 50, Color.WHITE, true);
+        rightFlipper = new Flipper(250, HEIGHT - 50, Color.WHITE, false);
 
         bumpers = new ArrayList<Bumper>();
         createObjects();
@@ -92,15 +94,15 @@ public class PinBallPanel extends JPanel implements ActionListener, KeyListener
         g.drawString("LEFT / RIGHT = flippers", 20, 40);
         g.drawString("Hold SPACE, release to launch", 20, 60);
         g.drawString("Launcher charge: " + launch.getCharge(), 20, 80);
+
         leftFlipper.drawBounds(g);
-rightFlipper.drawBounds(g);
+        rightFlipper.drawBounds(g);
     }
 
     private void drawBackground(Graphics g)
     {
         g.setColor(Color.GRAY);
         g.drawRect(0, 0, WIDTH - 1, HEIGHT - 1);
-
         g.drawLine(WIDTH - 75, 0, WIDTH - 75, HEIGHT);
     }
 
@@ -159,25 +161,39 @@ rightFlipper.drawBounds(g);
     {
         if (ball.getBounds().intersects(leftFlipper.getBounds()))
         {
-            ball.setYSpeed(-10);
-            ball.setXSpeed(-4);
+            while (ball.getBounds().intersects(leftFlipper.getBounds()))
+            {
+                ball.setY(ball.getY() - 1);
+            }
 
             if (leftFlipper.isFlipping())
             {
                 ball.setYSpeed(-14);
                 ball.setXSpeed(-6);
             }
+            else
+            {
+                ball.setYSpeed(1.5);
+                ball.setXSpeed(2);
+            }
         }
 
         if (ball.getBounds().intersects(rightFlipper.getBounds()))
         {
-            ball.setYSpeed(-10);
-            ball.setXSpeed(4);
+            while (ball.getBounds().intersects(rightFlipper.getBounds()))
+            {
+                ball.setY(ball.getY() - 1);
+            }
 
             if (rightFlipper.isFlipping())
             {
                 ball.setYSpeed(-14);
                 ball.setXSpeed(6);
+            }
+            else
+            {
+                ball.setYSpeed(1.5);
+                ball.setXSpeed(-2);
             }
         }
     }
@@ -210,9 +226,7 @@ rightFlipper.drawBounds(g);
 
     private void createObjects()
     {
-        bumpers.add(new Bumper(130, 140, 45, 45, Color.YELLOW));
-        bumpers.add(new Bumper(240, 160, 45, 45, Color.GREEN));
-        bumpers.add(new Bumper(185, 260, 45, 45, Color.ORANGE));
+        // Add bumpers here later
     }
 
     public void keyPressed(KeyEvent e)

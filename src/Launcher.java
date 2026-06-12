@@ -28,7 +28,7 @@ public class Launcher extends GameObject {
         double launchPower = 8 + charge * 0.15;
 
         ball.setYSpeed(-launchPower);
-        ball.setXSpeed(-3);
+        ball.setXSpeed(-launchPower * 0.1);
 
         stopCharging();
         resetCharge();

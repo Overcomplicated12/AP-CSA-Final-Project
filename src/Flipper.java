@@ -148,4 +148,15 @@ public class Flipper extends GameObject
     {
         return thickness;
     }
+    public boolean isMovingUp()
+    {
+        if (leftSide)
+        {
+            return flipping && angle > maxAngle;
+        }
+        else
+        {
+            return flipping && angle < maxAngle;
+        }
+    }
 }

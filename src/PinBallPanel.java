@@ -1,5 +1,6 @@
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.geom.Area;
 import java.util.ArrayList;
 import javax.swing.*;
 
@@ -95,6 +96,7 @@ public class PinBallPanel extends JPanel implements ActionListener, KeyListener
         g.drawString("Hold SPACE, release to launch", 20, 60);
         g.drawString("Launcher charge: " + launch.getCharge(), 20, 80);
 
+        ball.drawHitbox(g);
         leftFlipper.drawBounds(g);
         rightFlipper.drawBounds(g);
     }
@@ -144,6 +146,13 @@ public class PinBallPanel extends JPanel implements ActionListener, KeyListener
         ball.setYSpeed(0);
     }
 
+    private boolean shapesIntersect(Shape s1, Shape s2)
+    {
+        Area area = new Area(s1);
+        area.intersect(new Area(s2));
+        return !area.isEmpty();
+    }
+
     private void checkBumpCollisions()
     {
         for (Bumper bumper : bumpers)
@@ -159,12 +168,9 @@ public class PinBallPanel extends JPanel implements ActionListener, KeyListener
 
     private void checkFlipCollisions()
     {
-        if (ball.getBounds().intersects(leftFlipper.getBounds()))
+        if (shapesIntersect(ball.getShape(), leftFlipper.getShape()))
         {
-            while (ball.getBounds().intersects(leftFlipper.getBounds()))
-            {
-                ball.setY(ball.getY() - 1);
-            }
+            pushBallOutOfFlipper(leftFlipper);
 
             if (leftFlipper.isFlipping())
             {
@@ -173,17 +179,13 @@ public class PinBallPanel extends JPanel implements ActionListener, KeyListener
             }
             else
             {
-                ball.setYSpeed(1.5);
-                ball.setXSpeed(2);
+                rollDownFlipper(leftFlipper);
             }
         }
 
-        if (ball.getBounds().intersects(rightFlipper.getBounds()))
+        if (shapesIntersect(ball.getShape(), rightFlipper.getShape()))
         {
-            while (ball.getBounds().intersects(rightFlipper.getBounds()))
-            {
-                ball.setY(ball.getY() - 1);
-            }
+            pushBallOutOfFlipper(rightFlipper);
 
             if (rightFlipper.isFlipping())
             {
@@ -192,12 +194,40 @@ public class PinBallPanel extends JPanel implements ActionListener, KeyListener
             }
             else
             {
-                ball.setYSpeed(1.5);
-                ball.setXSpeed(-2);
+                rollDownFlipper(rightFlipper);
             }
         }
     }
 
+    private void pushBallOutOfFlipper(Flipper flipper)
+    {
+        int count = 0;
+
+        while (shapesIntersect(ball.getShape(), flipper.getShape()) && count < 30)
+        {
+            ball.setY(ball.getY() - 1);
+            count++;
+        }
+    }
+
+    private void rollDownFlipper(Flipper flipper)
+    {
+        double angle = Math.toRadians(flipper.getAngle());
+
+        double tangentX = Math.cos(angle);
+        double tangentY = Math.sin(angle);
+
+        double rollSpeed = 2.0;
+
+        ball.setXSpeed(tangentX * rollSpeed);
+        ball.setYSpeed(tangentY * rollSpeed);
+
+        // tiny upward bounce so it does not stick/clip
+        if (ball.getYSpeed() > -1)
+        {
+            ball.setYSpeed(ball.getYSpeed() - 1.5);
+        }
+    }
     private void checkWallCollisions()
     {
         if (ball.getY() > HEIGHT)

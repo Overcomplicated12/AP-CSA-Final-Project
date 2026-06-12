@@ -1,39 +1,63 @@
-import java.awt.Color;
-import java.awt.Graphics;
+import java.awt.*;
+import java.awt.geom.Ellipse2D;
 
 public class Ball extends GameObject
 {
-    private double xSpeed = 0;
-    private double ySpeed = 0;
+    private double xSpeed;
+    private double ySpeed;
 
-    public Ball(int x, int y, int diameter, Color color)
+    public Ball(int x, int y, int diameter, Color c)
     {
-        super(x, y, diameter, diameter, color);
+        super(x, y, diameter, diameter, c);
+        xSpeed = 0;
+        ySpeed = 0;
     }
 
     public void move(int screenWidth, int screenHeight)
     {
-        ySpeed += 0.25;
-
         setX((int)(getX() + xSpeed));
         setY((int)(getY() + ySpeed));
 
-        if (getX() <= 0)
+        ySpeed += 0.25; // gravity
+
+        if (getX() <= 0 || getX() + getWidth() >= screenWidth)
         {
-            setX(0);
-            reverseX();
-        }
-        else if (getX() + getWidth() >= screenWidth)
-        {
-            setX(screenWidth - getWidth());
             reverseX();
         }
 
         if (getY() <= 0)
         {
-            setY(0);
             reverseY();
         }
+    }
+
+    public void draw(Graphics g)
+    {
+        g.setColor(getColor());
+        g.fillOval(getX(), getY(), getWidth(), getHeight());
+    }
+
+    public Ellipse2D getShape()
+    {
+        return new Ellipse2D.Double(
+            getX(),
+            getY(),
+            getWidth(),
+            getHeight()
+        );
+    }
+
+    @Override
+    public Rectangle getBounds()
+    {
+        return getShape().getBounds();
+    }
+
+    public void drawHitbox(Graphics g)
+    {
+        Graphics2D g2 = (Graphics2D) g;
+        g2.setColor(Color.GREEN);
+        g2.draw(getShape());
     }
 
     public double getXSpeed()
@@ -46,16 +70,6 @@ public class Ball extends GameObject
         return ySpeed;
     }
 
-    public void reverseX()
-    {
-        xSpeed *= -1;
-    }
-
-    public void reverseY()
-    {
-        ySpeed *= -1;
-    }
-
     public void setXSpeed(double speed)
     {
         xSpeed = speed;
@@ -66,29 +80,23 @@ public class Ball extends GameObject
         ySpeed = speed;
     }
 
-    public void multXSpeed(double sp)
+    public void multXSpeed(double amount)
     {
-        xSpeed *= sp;
+        xSpeed *= amount;
     }
 
-    public void multYSpeed(double sp)
+    public void multYSpeed(double amount)
     {
-        ySpeed *= sp;
+        ySpeed *= amount;
     }
 
-    public void incXSpeed(double speed)
+    public void reverseX()
     {
-        xSpeed += speed;
+        xSpeed *= -1;
     }
 
-    public void incYSpeed(double speed)
+    public void reverseY()
     {
-        ySpeed += speed;
-    }
-
-    public void draw(Graphics g)
-    {
-        g.setColor(getColor());
-        g.fillOval(getX(), getY(), getWidth(), getHeight());
+        ySpeed *= -1;
     }
 }

@@ -167,46 +167,84 @@ public class PinBallPanel extends JPanel implements ActionListener, KeyListener 
 
     private void checkBumpCollisions() {
         for (Bumper bumper : bumpers) {
-            if (ball.getBounds().intersects(bumper.getBounds())) {
-                ball.reverseY();
-                ball.multXSpeed(-1);
+            if (shapesIntersect(ball.getShape(), bumper.getShape())) {
+                bounceOffCircularBumper(bumper);
                 updateScore(10);
             }
         }
     }
 
-    private void checkGuideWallCollisions() {
-        checkOneGuideWall(leftGuideWall, true);
-        checkOneGuideWall(rightGuideWall, false);
+    private void bounceOffCircularBumper(Bumper bumper) {
+        double ballCenterX = ball.getX() + ball.getWidth() / 2.0;
+        double ballCenterY = ball.getY() + ball.getHeight() / 2.0;
+
+        double bumperCenterX = bumper.getX() + bumper.getWidth() / 2.0;
+        double bumperCenterY = bumper.getY() + bumper.getHeight() / 2.0;
+
+        double dx = ballCenterX - bumperCenterX;
+        double dy = ballCenterY - bumperCenterY;
+
+        double distance = Math.sqrt(dx * dx + dy * dy);
+
+        if (distance == 0) {
+            distance = 1;
+        }
+
+        double normalX = dx / distance;
+        double normalY = dy / distance;
+
+        double bounceSpeed = 7.0;
+
+        ball.setXSpeed(normalX * bounceSpeed);
+        ball.setYSpeed(normalY * bounceSpeed);
+
+        // push ball slightly out so it doesn't get stuck inside bumper
+        double ballRadius = ball.getWidth() / 2.0;
+        double bumperRadius = bumper.getWidth() / 2.0;
+
+        double targetDistance = ballRadius + bumperRadius + 2;
+
+        ball.setX((int) (bumperCenterX + normalX * targetDistance - ballRadius));
+        ball.setY((int) (bumperCenterY + normalY * targetDistance - ballRadius));
     }
 
-    private void checkOneGuideWall(Line2D wall, boolean isLeftWall) {
-        Shape wallShape = new BasicStroke(15).createStrokedShape(wall);
+    private void checkGuideWallCollisions() {
+        Shape leftWallShape = new BasicStroke(15).createStrokedShape(leftGuideWall);
+        Shape rightWallShape = new BasicStroke(15).createStrokedShape(rightGuideWall);
 
+        checkOneGuideWall(leftWallShape, leftGuideWall, true);
+        checkOneGuideWall(rightWallShape, rightGuideWall, false);
+    }
+
+    private void checkOneGuideWall(Shape wallShape, Line2D wallLine, boolean isLeftWall) {
         if (shapesIntersect(ball.getShape(), wallShape)) {
-            pushBallOutOfWall(wallShape, isLeftWall);
+            pushBallOutOfGuideWall(wallShape, wallLine, isLeftWall);
 
-            double wallBoost = 1;
-            double wallFriction = 0.1;
+            double bounceStrength = 1;
+            double minimumBounce = 1.0;
+            double wallFriction = 0.65;
+            double upwardBounce = 2.5;
 
             if (isLeftWall) {
-                ball.setXSpeed(Math.abs(ball.getXSpeed()) + wallBoost);
+                ball.setXSpeed(Math.abs(ball.getXSpeed()) * bounceStrength + minimumBounce);
             } else {
-                ball.setXSpeed(-Math.abs(ball.getXSpeed()) - wallBoost);
+                ball.setXSpeed(-Math.abs(ball.getXSpeed()) * bounceStrength - minimumBounce);
             }
 
-            ball.setYSpeed(ball.getYSpeed() * wallFriction);
+            ball.setYSpeed(ball.getYSpeed() * wallFriction - upwardBounce);
         }
     }
 
-    private void pushBallOutOfWall(Shape wallShape, boolean isLeftWall) {
+    private void pushBallOutOfGuideWall(Shape wallShape, Line2D wallLine, boolean isLeftWall) {
         int count = 0;
 
         while (shapesIntersect(ball.getShape(), wallShape) && count < 50) {
             if (isLeftWall) {
                 ball.setX(ball.getX() + 1);
+                ball.setY(ball.getY() - 1);
             } else {
                 ball.setX(ball.getX() - 1);
+                ball.setY(ball.getY() - 1);
             }
 
             count++;
@@ -219,7 +257,7 @@ public class PinBallPanel extends JPanel implements ActionListener, KeyListener 
 
             if (leftFlipper.isMovingUp()) {
                 ball.setYSpeed(-14);
-                ball.setXSpeed(-6);
+                ball.setXSpeed(6);
             } else {
                 rollDownFlipper(leftFlipper);
             }
@@ -230,7 +268,7 @@ public class PinBallPanel extends JPanel implements ActionListener, KeyListener 
 
             if (rightFlipper.isMovingUp()) {
                 ball.setYSpeed(-14);
-                ball.setXSpeed(6);
+                ball.setXSpeed(-6);
             } else {
                 rollDownFlipper(rightFlipper);
             }
@@ -238,10 +276,21 @@ public class PinBallPanel extends JPanel implements ActionListener, KeyListener 
     }
 
     private void pushBallOutOfFlipper(Flipper flipper) {
+        double angle = Math.toRadians(flipper.getAngle());
+
+        double normalX = -Math.sin(angle);
+        double normalY = Math.cos(angle);
+
+        if (normalY > 0) {
+            normalX = -normalX;
+            normalY = -normalY;
+        }
+
         int count = 0;
 
         while (shapesIntersect(ball.getShape(), flipper.getShape()) && count < 50) {
-            ball.setY(ball.getY() - 1);
+            ball.setX(ball.getX() + (int) Math.round(normalX));
+            ball.setY(ball.getY() + (int) Math.round(normalY));
             count++;
         }
     }
@@ -249,22 +298,22 @@ public class PinBallPanel extends JPanel implements ActionListener, KeyListener 
     private void rollDownFlipper(Flipper flipper) {
         double angle = Math.toRadians(flipper.getAngle());
 
-        double rollX;
+        double rollX = Math.cos(angle);
 
-        if (flipper.isLeftSide()) {
-            rollX = Math.cos(angle); // left rolls right
-        } else {
-            rollX = Math.cos(angle); // right angle already points left
+        if (Math.abs(flipper.getAngle() - flipper.getMaxAngle()) < 2) {
+            rollX = -rollX;
+        }
+
+        if (Math.abs(rollX) < 0.1) {
+            rollX = 0;
         }
 
         double rollSpeed = 2.0;
 
         ball.setXSpeed(rollX * rollSpeed);
 
-        // small bounce, but not enough to roll upward forever
         double bounce = -1;
 
-        // always force the final roll direction downward
         ball.setYSpeed(Math.abs(Math.sin(angle) * rollSpeed) + bounce);
 
         if (ball.getYSpeed() < 0.3) {

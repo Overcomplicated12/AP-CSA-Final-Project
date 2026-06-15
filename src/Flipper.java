@@ -133,6 +133,14 @@ public class Flipper extends GameObject
     {
         return angle;
     }
+    public double getRestingAngle()
+    {
+        return restingAngle;
+    }
+    public double getMaxAngle()
+    {
+        return maxAngle;
+    }
 
     public boolean isLeftSide()
     {

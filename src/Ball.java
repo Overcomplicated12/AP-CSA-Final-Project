@@ -80,16 +80,6 @@ public class Ball extends GameObject
         ySpeed = speed;
     }
 
-    public void multXSpeed(double amount)
-    {
-        xSpeed *= amount;
-    }
-
-    public void multYSpeed(double amount)
-    {
-        ySpeed *= amount;
-    }
-
     public void reverseX()
     {
         xSpeed *= -1;

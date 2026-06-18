@@ -41,12 +41,7 @@ public class Flipper extends GameObject
         angle = restingAngle;
         flipping = false;
     }
-
-    public Flipper(int x, int y)
-    {
-        this(x, y, Color.RED, true);
-    }
-
+    // Update the flipper's angle based on whether it's flipping or returning to rest
     public void update()
     {
         if (leftSide)
@@ -98,7 +93,7 @@ public class Flipper extends GameObject
             thickness,
             thickness
         );
-
+        // Rotate the rectangle around its pivot point (the center of the circular end)
         AffineTransform transform = new AffineTransform();
         transform.translate(getX(), getY());
         transform.rotate(Math.toRadians(angle));

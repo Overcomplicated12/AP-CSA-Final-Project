@@ -8,13 +8,16 @@ import javax.swing.*;
 public class PinBallPanel extends JPanel implements ActionListener, KeyListener {
     private Ball ball;
     private int score;
+    private int lives = 3;
+
     private Launcher launch;
     private Timer timer;
-
+    // Game state variables
     private boolean ballInLauncher = true;
     private boolean spacePressed;
     private boolean wasSpacePressed;
     private boolean ballHasExitedLauncherLane = false;
+    private boolean gameOver = false;
 
     private ArrayList<Bumper> bumpers;
     private Flipper leftFlipper;
@@ -23,15 +26,22 @@ public class PinBallPanel extends JPanel implements ActionListener, KeyListener 
     private Line2D leftGuideWall;
     private Line2D rightGuideWall;
 
+    private enum Difficulty {
+        EASY, NORMAL, HARD
+    }
+
+    private Difficulty difficulty = null;
+    private double bumperBounceSpeed = 7.0;
+
     private final BasicStroke guideWallStroke = new BasicStroke(
             15,
             BasicStroke.CAP_BUTT,
-            BasicStroke.JOIN_MITER
-    );
+            BasicStroke.JOIN_MITER);
 
     private final int WIDTH = 500;
     private final int HEIGHT = 800;
 
+    // Constructor
     public PinBallPanel() {
         setPreferredSize(new Dimension(WIDTH, HEIGHT));
         setBackground(Color.DARK_GRAY);
@@ -42,28 +52,17 @@ public class PinBallPanel extends JPanel implements ActionListener, KeyListener 
                 launch.getX() + 5,
                 launch.getY() - 20,
                 20,
-                Color.CYAN
-        );
+                Color.CYAN);
 
         ball.setXSpeed(0);
         ball.setYSpeed(0);
 
-        leftFlipper = new Flipper(130, HEIGHT - 105, Color.WHITE, true);
-        rightFlipper = new Flipper(WIDTH - 130, HEIGHT - 105, Color.WHITE, false);
+        leftFlipper = new Flipper(120, HEIGHT - 105, Color.WHITE, true);
+        rightFlipper = new Flipper(360, HEIGHT - 105, Color.WHITE, false);
 
-        leftGuideWall = new Line2D.Double(
-                0, HEIGHT - 166,
-                130, HEIGHT - 105
-        );
-
-        rightGuideWall = new Line2D.Double(
-                WIDTH - 35, HEIGHT - 166,
-                WIDTH - 130, HEIGHT - 105
-        );
+        createGuideWalls();
 
         bumpers = new ArrayList<Bumper>();
-        createObjects();
-
         score = 0;
 
         setFocusable(true);
@@ -78,7 +77,13 @@ public class PinBallPanel extends JPanel implements ActionListener, KeyListener 
         requestFocusInWindow();
     }
 
+    // Main game loop
     public void actionPerformed(ActionEvent e) {
+        if (difficulty == null || gameOver) {
+            repaint();
+            return;
+        }
+
         updateGame();
 
         if (!ballInLauncher) {
@@ -91,8 +96,19 @@ public class PinBallPanel extends JPanel implements ActionListener, KeyListener 
         repaint();
     }
 
+    // Render current screen
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
+
+        if (difficulty == null) {
+            drawStartScreen(g);
+            return;
+        }
+
+        if (gameOver) {
+            drawEndScreen(g);
+            return;
+        }
 
         drawBackground(g);
 
@@ -107,14 +123,76 @@ public class PinBallPanel extends JPanel implements ActionListener, KeyListener 
 
         g.setColor(Color.WHITE);
         g.drawString("Score: " + score, 20, 20);
-        g.drawString("LEFT / RIGHT = flippers", 20, 40);
-        g.drawString("Hold SPACE, release to launch", 20, 60);
-        g.drawString("Launcher charge: " + launch.getCharge(), 20, 80);
+        g.drawString("Lives: " + lives, 20, 40);
+        g.drawString("Difficulty: " + difficulty, 20, 60);
+        g.drawString("LEFT / RIGHT = flippers", 20, 80);
+        g.drawString("Hold SPACE, release to launch", 20, 100);
+        g.drawString("Launcher charge: " + launch.getCharge(), 20, 120);
 
-        leftFlipper.drawBounds(g);
-        rightFlipper.drawBounds(g);
     }
 
+    // Difficulty selection screen
+    private void drawStartScreen(Graphics g) {
+        g.setColor(Color.WHITE);
+        g.setFont(new Font("Arial", Font.BOLD, 42));
+        g.drawString("PINBALL", 155, 230);
+
+        g.setFont(new Font("Arial", Font.PLAIN, 24));
+        g.drawString("Press 1 - Easy", 170, 320);
+        g.drawString("Press 2 - Normal", 170, 365);
+        g.drawString("Press 3 - Hard", 170, 410);
+
+        g.setFont(new Font("Arial", Font.PLAIN, 14));
+        g.drawString("Harder modes have bigger flipper gaps and stronger bumper bounces.", 30, 470);
+    }
+
+    // Game over screen
+    private void drawEndScreen(Graphics g) {
+        g.setColor(Color.WHITE);
+        g.setFont(new Font("Arial", Font.BOLD, 42));
+        g.drawString("GAME OVER", 125, 300);
+
+        g.setFont(new Font("Arial", Font.PLAIN, 28));
+        g.drawString("Final Score: " + score, 150, 360);
+
+        g.setFont(new Font("Arial", Font.PLAIN, 18));
+        g.drawString("Press 1 (easy), 2 (normal), or 3 (hard) to play again", 50, 430);
+    }
+
+    // Position guide walls from flipper pivots
+    private void createGuideWalls() {
+        double leftAngle = Math.toRadians(leftFlipper.getRestingAngle());
+        double rightAngle = Math.toRadians(rightFlipper.getRestingAngle());
+
+        double leftPivotX = leftFlipper.getX();
+        double leftPivotY = leftFlipper.getY();
+
+        double rightPivotX = rightFlipper.getX();
+        double rightPivotY = rightFlipper.getY();
+
+        double leftStartX = 0;
+        double rightStartX = WIDTH - 35;
+
+        double leftRun = leftPivotX - leftStartX;
+        double leftRise = Math.tan(leftAngle) * leftRun;
+
+        leftGuideWall = new Line2D.Double(
+                leftStartX,
+                leftPivotY - leftRise,
+                leftPivotX,
+                leftPivotY);
+
+        double rightRun = rightStartX - rightPivotX;
+        double rightRise = Math.tan(Math.PI - rightAngle) * rightRun;
+
+        rightGuideWall = new Line2D.Double(
+                rightStartX,
+                rightPivotY - rightRise,
+                rightPivotX,
+                rightPivotY);
+    }
+
+    // Draw playfield walls
     private void drawBackground(Graphics g) {
         Graphics2D g2 = (Graphics2D) g;
 
@@ -132,6 +210,7 @@ public class PinBallPanel extends JPanel implements ActionListener, KeyListener 
         g2.setStroke(new BasicStroke(1));
     }
 
+    // Update movement and launcher state
     private void updateGame() {
         leftFlipper.update();
         rightFlipper.update();
@@ -159,9 +238,9 @@ public class PinBallPanel extends JPanel implements ActionListener, KeyListener 
         }
 
         ball.move(WIDTH, HEIGHT);
-        checkRightGrayWallCollision();
     }
 
+    // Hold ball at launcher
     private void keepBallAtLauncherTop() {
         ball.setX(launch.getX() + 5);
         ball.setY(launch.getY() - ball.getHeight());
@@ -169,12 +248,14 @@ public class PinBallPanel extends JPanel implements ActionListener, KeyListener 
         ball.setYSpeed(0);
     }
 
+    // Shape collision helper
     private boolean shapesIntersect(Shape s1, Shape s2) {
         Area area = new Area(s1);
         area.intersect(new Area(s2));
         return !area.isEmpty();
     }
 
+    // Bumper collisions
     private void checkBumpCollisions() {
         for (Bumper bumper : bumpers) {
             if (shapesIntersect(ball.getShape(), bumper.getShape())) {
@@ -184,6 +265,7 @@ public class PinBallPanel extends JPanel implements ActionListener, KeyListener 
         }
     }
 
+    // Circular bumper bounce using normal vector from collision point, with a small adjustment to prevent vertical bouncing on top of bumpers
     private void bounceOffCircularBumper(Bumper bumper) {
         double ballCenterX = ball.getX() + ball.getWidth() / 2.0;
         double ballCenterY = ball.getY() + ball.getHeight() / 2.0;
@@ -203,10 +285,17 @@ public class PinBallPanel extends JPanel implements ActionListener, KeyListener 
         double normalX = dx / distance;
         double normalY = dy / distance;
 
-        double bounceSpeed = 7.0;
+        // Prevent repeated vertical bounces on top of bumpers
+        if (Math.abs(normalX) < 0.15 && normalY < 0) {
+            normalX = -0.2; // slight push to the left
 
-        ball.setXSpeed(normalX * bounceSpeed);
-        ball.setYSpeed(normalY * bounceSpeed);
+            double length = Math.sqrt(normalX * normalX + normalY * normalY);
+            normalX /= length;
+            normalY /= length;
+        }
+
+        ball.setXSpeed(normalX * bumperBounceSpeed);
+        ball.setYSpeed(normalY * bumperBounceSpeed);
 
         double ballRadius = ball.getWidth() / 2.0;
         double bumperRadius = bumper.getWidth() / 2.0;
@@ -217,17 +306,19 @@ public class PinBallPanel extends JPanel implements ActionListener, KeyListener 
         ball.setY((int) (bumperCenterY + normalY * targetDistance - ballRadius));
     }
 
+    // Guide wall collisions
     private void checkGuideWallCollisions() {
         Shape leftWallShape = guideWallStroke.createStrokedShape(leftGuideWall);
         Shape rightWallShape = guideWallStroke.createStrokedShape(rightGuideWall);
 
-        checkOneGuideWall(leftWallShape, leftGuideWall, true);
-        checkOneGuideWall(rightWallShape, rightGuideWall, false);
+        checkOneGuideWall(leftWallShape, true);
+        checkOneGuideWall(rightWallShape, false);
     }
 
-    private void checkOneGuideWall(Shape wallShape, Line2D wallLine, boolean isLeftWall) {
+    // Single guide wall response
+    private void checkOneGuideWall(Shape wallShape, boolean isLeftWall) {
         if (shapesIntersect(ball.getShape(), wallShape)) {
-            pushBallOutOfGuideWall(wallShape, wallLine, isLeftWall);
+            pushBallOutOfGuideWall(wallShape, isLeftWall);
 
             double bounceStrength = 0.75;
             double minimumBounce = 1.0;
@@ -244,7 +335,8 @@ public class PinBallPanel extends JPanel implements ActionListener, KeyListener 
         }
     }
 
-    private void pushBallOutOfGuideWall(Shape wallShape, Line2D wallLine, boolean isLeftWall) {
+    // Prevent wall clipping
+    private void pushBallOutOfGuideWall(Shape wallShape, boolean isLeftWall) {
         int count = 0;
 
         while (shapesIntersect(ball.getShape(), wallShape) && count < 50) {
@@ -260,13 +352,13 @@ public class PinBallPanel extends JPanel implements ActionListener, KeyListener 
         }
     }
 
+    // Flipper collisions
     private void checkFlipCollisions() {
         if (shapesIntersect(ball.getShape(), leftFlipper.getShape())) {
             pushBallOutOfFlipper(leftFlipper);
 
             if (leftFlipper.isMovingUp()) {
-                ball.setYSpeed(-14);
-                ball.setXSpeed(6);
+                bounceOffMovingFlipper(leftFlipper);
             } else {
                 rollDownFlipper(leftFlipper);
             }
@@ -276,14 +368,59 @@ public class PinBallPanel extends JPanel implements ActionListener, KeyListener 
             pushBallOutOfFlipper(rightFlipper);
 
             if (rightFlipper.isMovingUp()) {
-                ball.setYSpeed(-14);
-                ball.setXSpeed(-6);
+                bounceOffMovingFlipper(rightFlipper);
             } else {
                 rollDownFlipper(rightFlipper);
             }
         }
     }
 
+    // Moving flipper bounce
+    private void bounceOffMovingFlipper(Flipper flipper) {
+        double ballCenterX = ball.getX() + ball.getWidth() / 2.0;
+        double ballCenterY = ball.getY() + ball.getHeight() / 2.0;
+
+        double pivotX = flipper.getX();
+        double pivotY = flipper.getY();
+
+        double angle = Math.toRadians(flipper.getAngle());
+
+        double tangentX = Math.cos(angle);
+        double tangentY = Math.sin(angle);
+
+        double toBallX = ballCenterX - pivotX;
+        double toBallY = ballCenterY - pivotY;
+
+        double distanceAlongFlipper = toBallX * tangentX + toBallY * tangentY;
+
+        double hitRatio = distanceAlongFlipper / flipper.getLength();
+
+        if (hitRatio < 0) {
+            hitRatio = 0;
+        }
+
+        if (hitRatio > 1) {
+            hitRatio = 1;
+        }
+
+        double minPower = 7.0;
+        double maxPower = 17.0;
+
+        double power = minPower + (maxPower - minPower) * hitRatio;
+
+        double directionX;
+
+        if (flipper.isLeftSide()) {
+            directionX = 1;
+        } else {
+            directionX = -1;
+        }
+
+        ball.setXSpeed(directionX * power * 0.45);
+        ball.setYSpeed(-power);
+    }
+
+    // Prevent flipper clipping
     private void pushBallOutOfFlipper(Flipper flipper) {
         double angle = Math.toRadians(flipper.getAngle());
 
@@ -304,59 +441,82 @@ public class PinBallPanel extends JPanel implements ActionListener, KeyListener 
         }
     }
 
+    // Resting flipper roll, small bounce based on angle
     private void rollDownFlipper(Flipper flipper) {
         double angle = Math.toRadians(flipper.getAngle());
 
-        double rollX = Math.cos(angle);
-
-        if (Math.abs(flipper.getAngle() - flipper.getMaxAngle()) < 2) {
-            rollX = -rollX;
-        }
-
-        if (Math.abs(rollX) < 0.1) {
-            rollX = 0;
-        }
-
         double rollSpeed = 2.0;
+        double bounceStrength = 1.5;
+
+        double rollX;
+        double rollY = Math.abs(Math.sin(angle));
+
+        boolean fullyExtended = Math.abs(flipper.getAngle() - flipper.getMaxAngle()) < 2.0;
+
+        if (flipper.isLeftSide()) {
+            if (fullyExtended) {
+                rollX = -Math.abs(Math.cos(angle));
+            } else {
+                rollX = Math.abs(Math.cos(angle));
+            }
+        } else {
+            if (fullyExtended) {
+                rollX = Math.abs(Math.cos(angle));
+            } else {
+                rollX = -Math.abs(Math.cos(angle));
+            }
+        }
 
         ball.setXSpeed(rollX * rollSpeed);
 
-        double bounce = -2;
+        ball.setYSpeed(rollY * rollSpeed - bounceStrength);
 
-        ball.setYSpeed(Math.abs(Math.sin(angle) * rollSpeed) + bounce);
-
-        if (ball.getYSpeed() < 0.3) {
-            ball.setYSpeed(0.3);
+        if (ball.getYSpeed() < -1.0) {
+            ball.setYSpeed(-1.0);
         }
     }
 
-    private void checkRightGrayWallCollision() {
+    // Outer wall and drain collisions
+    private void checkWallCollisions() {
+        double wallRestitution = 0.6;
+
         int wallX = WIDTH - 30;
 
         if (!ballHasExitedLauncherLane &&
-            ball.getX() + ball.getWidth() < wallX) {
+                ball.getX() + ball.getWidth() < wallX) {
             ballHasExitedLauncherLane = true;
         }
 
-        if (!ballHasExitedLauncherLane) {
-            return;
+        if (ball.getY() < 0) {
+            ball.setY(0);
+            ball.setYSpeed(Math.abs(ball.getYSpeed()) * wallRestitution);
         }
 
-        int ballRight = ball.getX() + ball.getWidth();
+        if (ball.getX() < 0) {
+            ball.setX(0);
+            ball.setXSpeed(Math.abs(ball.getXSpeed()) * wallRestitution);
+        }
 
-        if (ballRight >= wallX) {
+        if (ballHasExitedLauncherLane &&
+                ball.getX() + ball.getWidth() > wallX) {
             ball.setX(wallX - ball.getWidth());
-            ball.setXSpeed(-Math.abs(ball.getXSpeed()));
+            ball.setXSpeed(-Math.abs(ball.getXSpeed()) * wallRestitution);
         }
-    }
 
-    private void checkWallCollisions() {
         if (ball.getY() > HEIGHT) {
-            resetBall();
-            score = Math.max(0, score - 50);
+            lives--;
+
+            if (lives <= 0) {
+                gameOver = true;
+                ball.setXSpeed(0);
+                ball.setYSpeed(0);
+            } else {
+                resetBall();
+            }
         }
     }
 
+    // Reset ball after drain
     private void resetBall() {
         ballInLauncher = true;
         ballHasExitedLauncherLane = false;
@@ -373,14 +533,77 @@ public class PinBallPanel extends JPanel implements ActionListener, KeyListener 
         score += points;
     }
 
+    // Apply selected difficulty
+    private void applyDifficulty(Difficulty selectedDifficulty) {
+        difficulty = selectedDifficulty;
+        lives = 3;
+        gameOver = false;
+        score = 0;
+
+        if (difficulty == Difficulty.EASY) {
+            bumperBounceSpeed = 6.0;
+
+            leftFlipper = new Flipper(130, HEIGHT - 105, Color.WHITE, true);
+            rightFlipper = new Flipper(350, HEIGHT - 105, Color.WHITE, false);
+        } else if (difficulty == Difficulty.NORMAL) {
+            bumperBounceSpeed = 7.5;
+
+            leftFlipper = new Flipper(120, HEIGHT - 105, Color.WHITE, true);
+            rightFlipper = new Flipper(360, HEIGHT - 105, Color.WHITE, false);
+        } else if (difficulty == Difficulty.HARD) {
+            bumperBounceSpeed = 9.5;
+
+            leftFlipper = new Flipper(105, HEIGHT - 105, Color.WHITE, true);
+            rightFlipper = new Flipper(375, HEIGHT - 105, Color.WHITE, false);
+        }
+
+        createGuideWalls();
+        createObjects();
+        resetBall();
+    }
+
+    // Create bumpers
     private void createObjects() {
-        bumpers.add(new Bumper(150, 160, 45, 45, Color.YELLOW));
-        bumpers.add(new Bumper(260, 180, 45, 45, Color.GREEN));
-        bumpers.add(new Bumper(210, 290, 45, 45, Color.ORANGE));
+        bumpers.clear();
+
+        if (difficulty == Difficulty.EASY) {
+            bumperBounceSpeed = 6.0;
+
+            bumpers.add(new Bumper(130, 150, 50, 50, Color.YELLOW));
+            bumpers.add(new Bumper(270, 150, 50, 50, Color.GREEN));
+            bumpers.add(new Bumper(200, 250, 50, 50, Color.ORANGE));
+            bumpers.add(new Bumper(130, 350, 45, 45, Color.PINK));
+            bumpers.add(new Bumper(270, 350, 45, 45, Color.MAGENTA));
+        } else if (difficulty == Difficulty.NORMAL) {
+            bumperBounceSpeed = 7.5;
+
+            bumpers.add(new Bumper(150, 160, 45, 45, Color.YELLOW));
+            bumpers.add(new Bumper(250, 160, 45, 45, Color.GREEN));
+            bumpers.add(new Bumper(200, 260, 45, 45, Color.ORANGE));
+            bumpers.add(new Bumper(200, 360, 45, 45, Color.PINK));
+        } else if (difficulty == Difficulty.HARD) {
+            bumperBounceSpeed = 9.5;
+
+            bumpers.add(new Bumper(140, 180, 40, 40, Color.YELLOW));
+            bumpers.add(new Bumper(260, 180, 40, 40, Color.GREEN));
+            bumpers.add(new Bumper(200, 320, 40, 40, Color.ORANGE));
+        }
     }
 
     public void keyPressed(KeyEvent e) {
         int code = e.getKeyCode();
+
+        if (difficulty == null || gameOver) {
+            if (code == KeyEvent.VK_1) {
+                applyDifficulty(Difficulty.EASY);
+            } else if (code == KeyEvent.VK_2) {
+                applyDifficulty(Difficulty.NORMAL);
+            } else if (code == KeyEvent.VK_3) {
+                applyDifficulty(Difficulty.HARD);
+            }
+
+            return;
+        }
 
         if (code == KeyEvent.VK_LEFT) {
             leftFlipper.setFlipping(true);
@@ -393,6 +616,10 @@ public class PinBallPanel extends JPanel implements ActionListener, KeyListener 
 
     public void keyReleased(KeyEvent e) {
         int code = e.getKeyCode();
+
+        if (difficulty == null || gameOver) {
+            return;
+        }
 
         if (code == KeyEvent.VK_LEFT) {
             leftFlipper.setFlipping(false);

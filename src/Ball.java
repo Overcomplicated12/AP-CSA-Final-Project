@@ -52,7 +52,7 @@ public class Ball extends GameObject
     {
         return getShape().getBounds();
     }
-
+    // for debugging purposes, draw the hitbox of the ball
     public void drawHitbox(Graphics g)
     {
         Graphics2D g2 = (Graphics2D) g;

@@ -3,6 +3,7 @@ import java.awt.Graphics;
 import java.awt.Color;
 import java.awt.Shape;
 
+// Base class for all game objects
 public class GameObject {
     private int x, y, width, height;
     private Color color;

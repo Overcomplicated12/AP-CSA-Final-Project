@@ -23,12 +23,12 @@ public class Launcher extends GameObject {
             charge++;
         }
     }
-
+    // Launch the ball with power based on the current charge level
     public void launch(Ball ball) {
         double launchPower = 8 + charge * 0.15;
 
         ball.setYSpeed(-launchPower);
-        ball.setXSpeed(-1);
+        ball.setXSpeed(-1 * charge *0.05);
 
         stopCharging();
         resetCharge();

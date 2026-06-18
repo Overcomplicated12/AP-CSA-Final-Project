@@ -490,18 +490,26 @@ public class PinBallPanel extends JPanel implements ActionListener, KeyListener 
             ballHasExitedLauncherLane = true;
         }
 
-        if (ball.getY() < 0) {
+        // Top wall
+        if (ball.getY() <= 0) {
             ball.setY(0);
-            ball.setYSpeed(Math.abs(ball.getYSpeed()) * wallRestitution);
+
+            double newYSpeed = Math.abs(ball.getYSpeed()) * wallRestitution;
+
+            if (newYSpeed < 1.5) {
+                newYSpeed = 1.5;
+            }
+
+            ball.setYSpeed(newYSpeed);
         }
 
-        if (ball.getX() < 0) {
+        if (ball.getX() <= 0) {
             ball.setX(0);
             ball.setXSpeed(Math.abs(ball.getXSpeed()) * wallRestitution);
         }
 
         if (ballHasExitedLauncherLane &&
-                ball.getX() + ball.getWidth() > wallX) {
+                ball.getX() + ball.getWidth() >= wallX) {
             ball.setX(wallX - ball.getWidth());
             ball.setXSpeed(-Math.abs(ball.getXSpeed()) * wallRestitution);
         }

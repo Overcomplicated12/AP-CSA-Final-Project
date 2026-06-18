@@ -265,7 +265,8 @@ public class PinBallPanel extends JPanel implements ActionListener, KeyListener 
         }
     }
 
-    // Circular bumper bounce using normal vector from collision point, with a small adjustment to prevent vertical bouncing on top of bumpers
+    // Circular bumper bounce using normal vector from collision point, with a small
+    // adjustment to prevent vertical bouncing on top of bumpers
     private void bounceOffCircularBumper(Bumper bumper) {
         double ballCenterX = ball.getX() + ball.getWidth() / 2.0;
         double ballCenterY = ball.getY() + ball.getHeight() / 2.0;
@@ -320,18 +321,20 @@ public class PinBallPanel extends JPanel implements ActionListener, KeyListener 
         if (shapesIntersect(ball.getShape(), wallShape)) {
             pushBallOutOfGuideWall(wallShape, isLeftWall);
 
-            double bounceStrength = 0.75;
-            double minimumBounce = 1.0;
-            double wallFriction = 0.65;
-            double upwardBounce = 4.0;
+            double wallRollSpeed = 2.4;
+            double bounceStrength = 1.2;
 
             if (isLeftWall) {
-                ball.setXSpeed(Math.abs(ball.getXSpeed()) * bounceStrength + minimumBounce);
+                ball.setXSpeed(wallRollSpeed);
             } else {
-                ball.setXSpeed(-Math.abs(ball.getXSpeed()) * bounceStrength - minimumBounce);
+                ball.setXSpeed(-wallRollSpeed);
             }
 
-            ball.setYSpeed(ball.getYSpeed() * wallFriction - upwardBounce);
+            ball.setYSpeed(-bounceStrength);
+
+            if (ball.getYSpeed() < -1.5) {
+                ball.setYSpeed(-1.5);
+            }
         }
     }
 
